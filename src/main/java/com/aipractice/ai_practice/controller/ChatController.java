@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatController {
 
     private ChatClient chatClient;
-    //this is a builder class who's bean u'll get
-
+    //this is a builder class whose bean you'll get
+    //chatClient you cannot autowire as it's an interface
     public ChatController(ChatClient.Builder builder){
         this.chatClient = builder.build();
     }
 
     @GetMapping("/chat")
-    public ResponseEntity<String> chatOpenAI(
+    public ResponseEntity<String> chatOllama(
             @RequestParam(value = "ques", required = true) String ques
     ) {
         var aiResponse = chatClient.prompt(ques).call().content();

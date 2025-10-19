@@ -3,44 +3,49 @@ practicing AI modules from spring again
 
 
 ### properties that are useful
+Here are some of the **most useful configuration properties** for the prefix `spring.ai.ollama.*` (for integrating Ollama with SpringAI) — along with what they do and when you might want to set them.
+
 ---
 
-### 🔑 Core connection properties
+### 🔑 Core connection & startup properties
 
-These are essential to get things communicating with OpenAI.
+These affect how Spring AI connects to the Ollama API, how models are pulled at startup, etc.
 
-| Property                           | Description                                                                                                                             |
-|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `spring.ai.openai.api-key`         | Your OpenAI API key. Without this the client won’t authenticate.                                                                        |
-| `spring.ai.openai.base-url`        | The base URL for the OpenAI API. Default is typically `api.openai.com`. Use this if you need to point to a proxy or alternate endpoint. |
-| `spring.ai.openai.organization-id` | If you belong to multiple OpenAI org., specify which to use for the request.                                                            |
-| `spring.ai.openai.project-id`      | Similar to org-id, for project scoping in OpenAI.                                                                                       |
+| Property                                                                                             | Description                                                                                                        |
+|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `spring.ai.ollama.base-url`                                                                          | The base URL where the Ollama API server is running. Default is `http://localhost:11434`.                          |
+| `spring.ai.ollama.init.pull-model-strategy`                                                          | Controls whether models are pulled automatically at startup and *how*: e.g., `never`, `when_missing`, `always`.    |
+| `spring.ai.ollama.init.timeout`                                                                      | How long to wait for a model pull to complete before timing out.                                                   |
+| `spring.ai.ollama.init.max-retries`                                                                  | Maximum number of retries for the model pull operation.                                                            |
+| `spring.ai.ollama.init.chat.include` / `spring.ai.ollama.init.embedding.include`                     | Whether the “chat” models / “embedding” models should be included in the initialization/pulling task at startup.   |
+| `spring.ai.ollama.init.chat.additional-models` / `spring.ai.ollama.init.embedding.additional-models` | Additional model names (besides default) to pull/initialize at startup. Useful if you plan to use multiple models. |
 
 ---
 
 ### 🧠 Chat-model specific properties
 
-If you’re using the chat models (e.g., GPT style conversational models) via Spring AI.
+When you’re using Ollama for chat/completion tasks, these help control which model, how it responds, etc.
 
-| Property                                               | Description                                                                                                                                         |
-|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spring.ai.model.chat`                                 | Specifies which chat model implementation to enable. Default is `openai`.                                                                           |
-| `spring.ai.openai.chat.options.model`                  | The name of the chat model to use (for example: `gpt-4o`, `gpt-4o-mini`, `gpt-3.5-turbo`, etc.).                                                    |
-| `spring.ai.openai.chat.options.response-format.type`   | If using structured output / JSON schema output, specify the type (e.g., `JSON_SCHEMA`).                                                            |
-| `spring.ai.openai.chat.options.response-format.schema` | The actual JSON schema to enforce the output shape. Useful for making the responses strongly typed.                                                 |
-| `spring.ai.openai.chat.completions-path`               | The path under the base URL for the chat completions endpoint (defaults to something like `/v1/chat/completions`). Handy if you use a custom route. |
+| Property                                   | Description                                                                                                                                                             |
+|--------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spring.ai.model.chat`                     | Top-level property to select which chat provider or model integration is active. E.g., set this to `ollama` to enable Ollama’s chat integration.                        |
+| `spring.ai.ollama.chat.options.model`      | The name of the model to use (e.g., `mistral`, `llama3.1:8b`, etc.) when using chat capability with Ollama.                                                             |
+| `spring.ai.ollama.chat.options.format`     | The format to return a response in. For example, JSON format.                                                                                                           |
+| `spring.ai.ollama.chat.options.keep_alive` | Controls how long the model will stay loaded into memory following the request (so it can reuse state or be faster) when using Ollama.                                  |
+| *Other “options” properties*               | Many advanced low-level model parameters (depending on the model) may also be configurable via the `options` namespace — e.g., temperature, top-k, stop sequences, etc. |
 
 ---
 
-### 🔁 Retry / resilience properties
+### 🧮 Embeddings & other model-types
 
-Important for production readiness: handling transient errors, retries, back-off, etc.
+If you’re using Ollama for embeddings (vector representations) and not just chat, there are properties for that too.
 
-| Property                                   | Description                                                                                             |
-|--------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| `spring.ai.retry.max-attempts`             | Maximum number of retry attempts when calling the API.                                                  |
-| `spring.ai.retry.backoff.initial-interval` | Initial wait time for exponential backoff before retrying.                                              |
-| `spring.ai.retry.backoff.multiplier`       | Multiplier for increasing backoff interval.                                                             |
-| `spring.ai.retry.on-client-errors`         | Whether to retry when client (4xx) errors are seen. By default likely false (i.e., don’t retry on 4xx). |
+| Property                                                                                         | Description                                                                              |
+|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| `spring.ai.model.embedding`                                                                      | Top-level property to select which embedding provider is active (e.g., set to `ollama`). |
+| `spring.ai.ollama.embedding.options.model`                                                       | The model name for embeddings via Ollama.                                                |
+| `spring.ai.ollama.embedding.options.keep_alive`                                                  | How long to keep the embedding model loaded.                                             |
+| `spring.ai.ollama.embedding.options.truncate`                                                    | Whether to truncate input text when it exceeds context length for embedding.             |
+| **Advanced embedding options**: `num-batch`, `num-gpu`, `low-vram`, `temperature`, `top-k`, etc. | These let you tune performance and quality of embedding generation.                      |
 
 ---
